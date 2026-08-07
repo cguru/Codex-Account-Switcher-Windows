@@ -50,4 +50,9 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create $env:GITHUB_REF_NAME .\dist\CodexAccountSwitcher-Setup.exe --generate-notes --title $env:GITHUB_REF_NAME
+        run: |
+          if (gh release view $env:GITHUB_REF_NAME 2>$null) {
+            gh release upload $env:GITHUB_REF_NAME .\dist\CodexAccountSwitcher-Setup.exe --clobber
+          } else {
+            gh release create $env:GITHUB_REF_NAME .\dist\CodexAccountSwitcher-Setup.exe --generate-notes --title $env:GITHUB_REF_NAME
+          }
