@@ -1,0 +1,9 @@
+dist/
+*.pdb
+.vendor-cache/
+vendor/*.exe
+assets/app-icon-source.png
+debug/
+.vs/
+*.user
+*.suo
