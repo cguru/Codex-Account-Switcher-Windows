@@ -8,6 +8,7 @@ $projectRoot = $PSScriptRoot
 
 Get-Process -Name "CodexAccountSwitcher" -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Milliseconds 250
+& (Join-Path $projectRoot "prepare-node.ps1")
 
 if (-not (Test-Path -LiteralPath (Join-Path $projectRoot "vendor\codex-auth.exe")) -and
     -not (Get-Command codex-auth -ErrorAction SilentlyContinue)) {
@@ -36,6 +37,18 @@ $bundledAuth = Join-Path $projectRoot "vendor\codex-auth.exe"
 if (Test-Path -LiteralPath $bundledAuth) {
     Copy-Item -LiteralPath $bundledAuth -Destination (Join-Path $installRoot "codex-auth.exe") -Force
     Copy-Item -LiteralPath (Join-Path $projectRoot "vendor\LICENSE-codex-auth.txt") -Destination (Join-Path $installRoot "LICENSE-codex-auth.txt") -Force
+}
+$nodeArchive = Join-Path $projectRoot "vendor\node-runtime.zip"
+if (Test-Path -LiteralPath $nodeArchive) {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archive = [IO.Compression.ZipFile]::OpenRead($nodeArchive)
+    try {
+        $nodeEntry = $archive.Entries | Where-Object { $_.FullName -match '/node\.exe$' } | Select-Object -First 1
+        if (-not $nodeEntry) { throw "node.exe is missing from the portable Node.js archive." }
+        [IO.Compression.ZipFileExtensions]::ExtractToFile($nodeEntry, (Join-Path $installRoot "node.exe"), $true)
+    }
+    finally { $archive.Dispose() }
+    Copy-Item -LiteralPath (Join-Path $projectRoot "vendor\LICENSE-node.txt") -Destination (Join-Path $installRoot "LICENSE-node.txt") -Force
 }
 
 $desktop = [Environment]::GetFolderPath("Desktop")

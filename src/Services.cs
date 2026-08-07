@@ -120,9 +120,13 @@ namespace CodexAccountSwitcher.Windows
             }
             EnsureAvailable();
             CommandResult result = await RunAsync(new[] { "list", useApi ? "--api" : "--skip-api" }, 45000);
+            IList<AccountInfo> accounts = AccountTableParser.Parse(result.Output, useApi);
+            // codex-auth may print a valid table and then return a non-zero exit code when an
+            // optional post-refresh step is unavailable. The verified table remains usable.
+            if (accounts.Count > 0) return accounts;
             if (!result.Success) throw new InvalidOperationException(CleanError(result.Output,
                 L.T("계정 목록을 읽지 못했습니다.", "Could not read the account list.")));
-            return AccountTableParser.Parse(result.Output, useApi);
+            return accounts;
         }
 
         public async Task<CommandResult> SwitchAsync(string accountKey)
@@ -150,10 +154,10 @@ namespace CodexAccountSwitcher.Windows
                 CreateNoWindow = false,
                 WindowStyle = ProcessWindowStyle.Normal
             };
+            PrependPath(info, AppDomain.CurrentDomain.BaseDirectory);
             if (!string.IsNullOrWhiteSpace(bundledCliDirectory))
             {
-                string currentPath = info.EnvironmentVariables["PATH"] ?? string.Empty;
-                info.EnvironmentVariables["PATH"] = bundledCliDirectory + ";" + currentPath;
+                PrependPath(info, bundledCliDirectory);
             }
             return Process.Start(info);
         }
@@ -181,6 +185,7 @@ namespace CodexAccountSwitcher.Windows
             };
             info.EnvironmentVariables["NO_COLOR"] = "1";
             info.EnvironmentVariables["TERM"] = "dumb";
+            PrependPath(info, AppDomain.CurrentDomain.BaseDirectory);
 
             using (Process process = new Process { StartInfo = info })
             {
@@ -212,6 +217,13 @@ namespace CodexAccountSwitcher.Windows
                 " & echo. & echo 완료되었습니다. 이 창을 닫아도 됩니다. & pause",
                 " & echo. & echo Finished. You may close this window. & pause");
             return "\"" + command + "\"";
+        }
+
+        private static void PrependPath(ProcessStartInfo info, string directory)
+        {
+            if (string.IsNullOrWhiteSpace(directory)) return;
+            string currentPath = info.EnvironmentVariables["PATH"] ?? string.Empty;
+            info.EnvironmentVariables["PATH"] = directory.TrimEnd(Path.DirectorySeparatorChar) + ";" + currentPath;
         }
 
         private static string Quote(string value)

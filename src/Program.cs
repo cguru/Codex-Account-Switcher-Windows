@@ -65,6 +65,11 @@ namespace CodexAccountSwitcher.Windows
                 Require(parsed[0].SwitchKey == "work@example.com", "email switch key");
                 Require(parsed[0].FiveHourUsedPercent == 31 && parsed[0].WeeklyUsedPercent == 62, "usage percent");
                 Require(parsed[1].WeeklyUsage == L.T("로그인 만료", "Login expired"), "error mapping");
+                string nodeSample = "* 01 work@example.com Pro NodeJsRequired NodeJsRequired -";
+                var nodeParsed = AccountTableParser.Parse(nodeSample, true);
+                Require(nodeParsed.Count == 1 && nodeParsed[0].FiveHourUsage ==
+                    L.T("설치 구성요소 누락", "Installation component missing"),
+                    "node runtime mapping");
                 Console.WriteLine("SELF-TEST PASSED");
                 return 0;
             }

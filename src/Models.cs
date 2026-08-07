@@ -122,7 +122,9 @@ namespace CodexAccountSwitcher.Windows
 
             if (!first.Contains("%"))
             {
-                string error = first == "400" || first == "401" ? L.T("로그인 만료", "Login expired") :
+                string error = first.Equals("NodeJsRequired", StringComparison.OrdinalIgnoreCase)
+                    ? L.T("설치 구성요소 누락", "Installation component missing") :
+                    first == "400" || first == "401" ? L.T("로그인 만료", "Login expired") :
                     first == "403" ? L.T("조회 차단", "Access blocked") : usageIsLive ? L.T("조회 불가", "Unavailable") : "-";
                 return new UsageField(error, null, start + 1);
             }

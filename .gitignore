@@ -2,6 +2,7 @@ dist/
 *.pdb
 .vendor-cache/
 vendor/*.exe
+vendor/node-runtime.zip
 assets/app-icon-source.png
 debug/
 .vs/

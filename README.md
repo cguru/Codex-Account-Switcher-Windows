@@ -21,6 +21,7 @@ sessions, settings, skills, or memories.
 - Supports Windows per-monitor DPI scaling and has been visually tested at 200% scaling.
 - Automatically uses Korean on Korean Windows (`ko-*`) and English everywhere else.
 - Uses local-only usage data by default. Live API usage lookup is explicit opt-in.
+- Bundles a private portable Node.js runtime so live usage works without installing Node.js system-wide.
 
 ## Install
 
@@ -28,7 +29,7 @@ Download `CodexAccountSwitcher-Setup.exe` from the
 [latest release](https://github.com/cguru/Codex-Account-Switcher-Windows/releases/latest) and run it.
 
 - No administrator permission is required.
-- The bundled installer includes the Windows x64 `codex-auth` runtime.
+- The bundled installer includes the Windows x64 `codex-auth` runtime and portable Node.js.
 - Desktop and Start menu shortcuts are created automatically.
 - Closing the window keeps the app in the system tray; use **Quit** from the tray menu to exit.
 - Silent installation is supported:
@@ -70,7 +71,7 @@ Requirements:
 
 - Windows 10 or 11 x64
 - PowerShell 7 recommended
-- Node.js 22+ and npm, used only to obtain the pinned `codex-auth` installer payload
+- Node.js 22+ and npm for source builds, used to obtain the pinned `codex-auth` installer payload
 - .NET Framework 4.x compiler and WPF runtime included with Windows
 
 ```powershell
@@ -99,7 +100,8 @@ the Start menu. Uninstalling the switcher does not delete Codex accounts or sess
 
 ## Third-party software
 
-Release installers bundle `@loongphy/codex-auth` 0.2.10 under its MIT License. See
+Release installers bundle `@loongphy/codex-auth` 0.2.10 and the official portable Node.js 24.18.1
+runtime. See
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
 [vendor/LICENSE-codex-auth.txt](vendor/LICENSE-codex-auth.txt).
 
@@ -118,6 +120,7 @@ Codex의 로컬 세션과 설정은 그대로 유지하면서 로그인 계정�
 - 전환 결과를 이메일로 재확인하고 실패하면 이전 계정으로 자동 복구를 시도합니다.
 - Windows 표시 언어가 한국어면 전체 UI와 알림, 설치 화면이 한국어로 표시됩니다.
 - 기본값은 로컬 사용량 정보만 읽으며 실시간 API 사용량 조회는 선택 사항입니다.
+- 휴대용 Node.js 런타임이 설치 파일에 포함되어 별도 Node.js 설치 없이 실시간 조회가 동작합니다.
 
 설치는 [최신 릴리스](https://github.com/cguru/Codex-Account-Switcher-Windows/releases/latest)에서
 `CodexAccountSwitcher-Setup.exe` 하나만 내려받아 실행하면 됩니다. 관리자 권한은 필요하지 않습니다.

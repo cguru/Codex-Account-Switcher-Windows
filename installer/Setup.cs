@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -12,8 +13,8 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("Installer for Codex Account Switcher")]
 [assembly: AssemblyCompany("cguru")]
 [assembly: AssemblyProduct("Codex Account Switcher Setup")]
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.1.1.0")]
+[assembly: AssemblyFileVersion("1.1.1.0")]
 
 namespace CodexAccountSwitcher.Setup
 {
@@ -51,6 +52,8 @@ namespace CodexAccountSwitcher.Setup
             string appPath = Path.Combine(installDirectory, "CodexAccountSwitcher.exe");
             string authPath = Path.Combine(installDirectory, "codex-auth.exe");
             string licensePath = Path.Combine(installDirectory, "LICENSE-codex-auth.txt");
+            string nodePath = Path.Combine(installDirectory, "node.exe");
+            string nodeLicensePath = Path.Combine(installDirectory, "LICENSE-node.txt");
             string uninstallPath = Path.Combine(installDirectory, "Uninstall Codex Account Switcher.exe");
 
             StopSwitcher();
@@ -58,6 +61,8 @@ namespace CodexAccountSwitcher.Setup
             WriteResource("SwitcherPayload", appPath);
             WriteResource("CodexAuthPayload", authPath);
             WriteResource("CodexAuthLicense", licensePath);
+            WriteZipEntryResource("NodePayloadZip", "/node.exe", nodePath);
+            WriteResource("NodeLicense", nodeLicensePath);
             File.Copy(CurrentExecutable(), uninstallPath, true);
 
             CreateShortcuts(appPath, installDirectory);
@@ -120,7 +125,7 @@ namespace CodexAccountSwitcher.Setup
 
             foreach (string file in new[]
             {
-                "CodexAccountSwitcher.exe", "codex-auth.exe", "LICENSE-codex-auth.txt",
+                "CodexAccountSwitcher.exe", "codex-auth.exe", "LICENSE-codex-auth.txt", "node.exe", "LICENSE-node.txt",
                 "Uninstall Codex Account Switcher.exe"
             })
             {
@@ -145,6 +150,35 @@ namespace CodexAccountSwitcher.Setup
                     T(" 설치 데이터가 없습니다.", " installation data is missing."));
                 using (FileStream output = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
                     input.CopyTo(output);
+            }
+            if (File.Exists(destination)) File.Replace(temp, destination, null);
+            else File.Move(temp, destination);
+        }
+
+        private static void WriteZipEntryResource(string resourceName, string entrySuffix, string destination)
+        {
+            string temp = destination + ".new";
+            using (Stream input = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+            {
+                if (input == null) throw new InvalidOperationException(resourceName +
+                    T(" 설치 데이터가 없습니다.", " installation data is missing."));
+                using (ZipArchive archive = new ZipArchive(input, ZipArchiveMode.Read, false))
+                {
+                    ZipArchiveEntry selected = null;
+                    foreach (ZipArchiveEntry entry in archive.Entries)
+                    {
+                        if (entry.FullName.EndsWith(entrySuffix, StringComparison.OrdinalIgnoreCase))
+                        {
+                            selected = entry;
+                            break;
+                        }
+                    }
+                    if (selected == null) throw new InvalidOperationException(entrySuffix +
+                        T(" 런타임 파일이 없습니다.", " runtime file is missing."));
+                    using (Stream source = selected.Open())
+                    using (FileStream output = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None))
+                        source.CopyTo(output);
+                }
             }
             if (File.Exists(destination)) File.Replace(temp, destination, null);
             else File.Move(temp, destination);
@@ -203,7 +237,7 @@ namespace CodexAccountSwitcher.Setup
             using (RegistryKey key = Registry.CurrentUser.CreateSubKey(UninstallKey))
             {
                 key.SetValue("DisplayName", ProductName);
-                key.SetValue("DisplayVersion", "1.1.0");
+                key.SetValue("DisplayVersion", "1.1.1");
                 key.SetValue("Publisher", "cguru");
                 key.SetValue("InstallLocation", installDirectory);
                 key.SetValue("DisplayIcon", appPath);
