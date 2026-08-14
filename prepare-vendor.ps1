@@ -6,10 +6,15 @@ $projectRoot = $PSScriptRoot
 $vendorRoot = Join-Path $projectRoot "vendor"
 $targetExe = Join-Path $vendorRoot "codex-auth.exe"
 $targetLicense = Join-Path $vendorRoot "LICENSE-codex-auth.txt"
+$codexAuthVersion = "0.3.0-alpha.10"
 
 New-Item -ItemType Directory -Force -Path $vendorRoot | Out-Null
-if ((Test-Path -LiteralPath $targetExe) -and (Test-Path -LiteralPath $targetLicense)) {
-    Write-Host "codex-auth vendor payload is ready."
+$installedVersion = if (Test-Path -LiteralPath $targetExe) {
+    (& $targetExe --version 2>$null | Out-String).Trim()
+} else { "" }
+if ((Test-Path -LiteralPath $targetLicense) -and
+    $installedVersion -eq "codex-auth $codexAuthVersion") {
+    Write-Host "codex-auth $codexAuthVersion vendor payload is ready."
     return
 }
 
@@ -20,13 +25,17 @@ if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
 $packageRoot = $null
 $globalRoot = (& npm root -g).Trim()
 $globalCandidate = Join-Path $globalRoot "@loongphy\codex-auth"
-if (Test-Path -LiteralPath $globalCandidate) {
+$globalPackageJson = Join-Path $globalCandidate "package.json"
+$globalVersion = if (Test-Path -LiteralPath $globalPackageJson) {
+    (Get-Content -LiteralPath $globalPackageJson -Raw | ConvertFrom-Json).version
+} else { "" }
+if ($globalVersion -eq $codexAuthVersion) {
     $packageRoot = $globalCandidate
 }
 else {
     $cacheRoot = Join-Path $projectRoot ".vendor-cache"
-    & npm install --prefix $cacheRoot --no-save "@loongphy/codex-auth@0.2.10"
-    if ($LASTEXITCODE -ne 0) { throw "Failed to download codex-auth 0.2.10." }
+    & npm install --prefix $cacheRoot --no-save "@loongphy/codex-auth@$codexAuthVersion"
+    if ($LASTEXITCODE -ne 0) { throw "Failed to download codex-auth $codexAuthVersion." }
     $packageRoot = Join-Path $cacheRoot "node_modules\@loongphy\codex-auth"
 }
 
@@ -45,4 +54,4 @@ foreach ($required in @($sourceExe, $sourceLicense)) {
 
 Copy-Item -LiteralPath $sourceExe -Destination $targetExe -Force
 Copy-Item -LiteralPath $sourceLicense -Destination $targetLicense -Force
-Write-Host "Prepared codex-auth 0.2.10 vendor payload."
+Write-Host "Prepared codex-auth $codexAuthVersion vendor payload."

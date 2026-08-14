@@ -102,7 +102,7 @@ the Start menu. Uninstalling the switcher does not delete Codex accounts or sess
 
 ## Third-party software
 
-Release installers bundle `@loongphy/codex-auth` 0.2.10 and the official portable Node.js 24.18.1
+Release installers bundle `@loongphy/codex-auth` 0.3.0-alpha.10 and the official portable Node.js 24.18.1
 runtime. See
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
 [vendor/LICENSE-codex-auth.txt](vendor/LICENSE-codex-auth.txt).
