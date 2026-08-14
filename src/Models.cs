@@ -58,7 +58,7 @@ namespace CodexAccountSwitcher.Windows
         {
             return new AppSettings
             {
-                UseApiUsage = false,
+                UseApiUsage = true,
                 StartWithWindows = false,
                 ConfirmBeforeSwitch = true
             };

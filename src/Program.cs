@@ -70,6 +70,15 @@ namespace CodexAccountSwitcher.Windows
                 Require(nodeParsed.Count == 1 && nodeParsed[0].FiveHourUsage ==
                     L.T("설치 구성요소 누락", "Installation component missing"),
                     "node runtime mapping");
+                string weeklyOnlyRegistry =
+                    "{\"accounts\":[{\"email\":\"work@example.com\",\"last_usage\":{" +
+                    "\"primary\":{\"used_percent\":0,\"window_minutes\":10080,\"resets_at\":4102444800}," +
+                    "\"secondary\":null}}]}";
+                AccountUsageRegistry.NormalizeFromJson(parsed, weeklyOnlyRegistry);
+                Require(parsed[0].FiveHourUsage == "-" && !parsed[0].FiveHourUsedPercent.HasValue,
+                    "weekly-only does not duplicate into 5-hour");
+                Require(parsed[0].WeeklyUsedPercent == 100 && parsed[0].WeeklyUsage.StartsWith("100%"),
+                    "weekly-only remaining percent");
                 Console.WriteLine("SELF-TEST PASSED");
                 return 0;
             }
