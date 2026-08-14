@@ -45,6 +45,7 @@ $arguments = @(
     "/reference:System.dll",
     "/reference:System.Core.dll",
     "/reference:System.Drawing.dll",
+    "/reference:System.Runtime.Serialization.dll",
     "/reference:System.Windows.Forms.dll"
 ) + ($wpfReferences | ForEach-Object { "/reference:$_" }) + $sources
 

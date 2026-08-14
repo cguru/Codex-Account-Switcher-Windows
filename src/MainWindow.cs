@@ -220,7 +220,7 @@ namespace CodexAccountSwitcher.Windows
 
             _liveUsageCheck = new CheckBox
             {
-                Content = L.T("실시간 사용량 조회 (선택 사항)", "Live usage lookup (optional)"),
+                Content = L.T("실시간 사용량 조회", "Live usage lookup"),
                 IsChecked = _settings.UseApiUsage,
                 Foreground = TextBrush,
                 FontSize = 13,
@@ -250,8 +250,8 @@ namespace CodexAccountSwitcher.Windows
             panel.Children.Add(_liveUsageCheck);
             panel.Children.Add(new TextBlock
             {
-                Text = L.T("기본값은 로컬 정보만 사용하며 외부 사용량 요청을 보내지 않습니다.",
-                    "By default, only local data is used and no external usage request is sent."),
+                Text = L.T("기본값은 실시간 조회입니다. 끄면 로컬에 저장된 정보만 표시됩니다.",
+                    "Live lookup is the default. Turn it off to show only locally stored data."),
                 Foreground = MutedBrush,
                 FontSize = 11,
                 Margin = new Thickness(23, 0, 0, 0),
@@ -321,8 +321,8 @@ namespace CodexAccountSwitcher.Windows
             usage.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             usage.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
             usage.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            usage.Children.Add(MakeUsage(L.T("5시간 사용량", "5-hour usage"), account.FiveHourUsage, account.FiveHourUsedPercent));
-            UIElement weekly = MakeUsage(L.T("주간 사용량", "Weekly usage"), account.WeeklyUsage, account.WeeklyUsedPercent);
+            usage.Children.Add(MakeUsage(L.T("5시간 남음", "5-hour remaining"), account.FiveHourUsage, account.FiveHourUsedPercent));
+            UIElement weekly = MakeUsage(L.T("주간 남음", "Weekly remaining"), account.WeeklyUsage, account.WeeklyUsedPercent);
             Grid.SetColumn(weekly, 2);
             usage.Children.Add(weekly);
             Grid.SetRow(usage, 1);
@@ -348,7 +348,7 @@ namespace CodexAccountSwitcher.Windows
                 Minimum = 0,
                 Maximum = 100,
                 Value = percent.HasValue ? percent.Value : 0,
-                Foreground = percent.HasValue && percent.Value >= 80 ? Brush("#F79009") : BlueBrush,
+                Foreground = percent.HasValue && percent.Value <= 20 ? Brush("#F79009") : BlueBrush,
                 Background = Brush("#EAECF0"),
                 BorderThickness = new Thickness(0),
                 Margin = new Thickness(0, 7, 0, 0)

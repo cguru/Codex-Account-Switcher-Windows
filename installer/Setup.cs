@@ -13,8 +13,8 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("Installer for Codex Account Switcher")]
 [assembly: AssemblyCompany("cguru")]
 [assembly: AssemblyProduct("Codex Account Switcher Setup")]
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
+[assembly: AssemblyVersion("1.1.2.0")]
+[assembly: AssemblyFileVersion("1.1.2.0")]
 
 namespace CodexAccountSwitcher.Setup
 {
@@ -237,7 +237,7 @@ namespace CodexAccountSwitcher.Setup
             using (RegistryKey key = Registry.CurrentUser.CreateSubKey(UninstallKey))
             {
                 key.SetValue("DisplayName", ProductName);
-                key.SetValue("DisplayVersion", "1.1.1");
+                key.SetValue("DisplayVersion", "1.1.2");
                 key.SetValue("Publisher", "cguru");
                 key.SetValue("InstallLocation", installDirectory);
                 key.SetValue("DisplayIcon", appPath);

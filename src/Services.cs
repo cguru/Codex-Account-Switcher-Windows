@@ -12,6 +12,7 @@ namespace CodexAccountSwitcher.Windows
 {
     internal sealed class SettingsStore
     {
+        private const int CurrentSettingsVersion = 2;
         private readonly string _directory;
         private readonly string _path;
 
@@ -26,17 +27,27 @@ namespace CodexAccountSwitcher.Windows
         {
             AppSettings settings = AppSettings.Defaults();
             if (!File.Exists(_path)) return settings;
+            int settingsVersion = 0;
             foreach (string raw in File.ReadAllLines(_path, Encoding.UTF8))
             {
                 string[] parts = raw.Split(new[] { '=' }, 2);
                 if (parts.Length != 2) continue;
+                string key = parts[0].Trim().ToLowerInvariant();
+                int version;
+                if (key == "settings_version" && int.TryParse(parts[1].Trim(), out version))
+                {
+                    settingsVersion = version;
+                    continue;
+                }
                 bool value;
                 if (!bool.TryParse(parts[1].Trim(), out value)) continue;
-                string key = parts[0].Trim().ToLowerInvariant();
                 if (key == "use_api_usage") settings.UseApiUsage = value;
                 if (key == "start_with_windows") settings.StartWithWindows = value;
                 if (key == "confirm_before_switch") settings.ConfirmBeforeSwitch = value;
             }
+            // v1 wrote the old local-only default to disk even when the user never chose it.
+            // Migrate that implicit default once; explicit choices made by v2+ remain intact.
+            if (settingsVersion < CurrentSettingsVersion) settings.UseApiUsage = true;
             return settings;
         }
 
@@ -46,6 +57,7 @@ namespace CodexAccountSwitcher.Windows
             string temp = _path + ".tmp";
             File.WriteAllLines(temp, new[]
             {
+                "settings_version=" + CurrentSettingsVersion,
                 "use_api_usage=" + settings.UseApiUsage,
                 "start_with_windows=" + settings.StartWithWindows,
                 "confirm_before_switch=" + settings.ConfirmBeforeSwitch
@@ -121,6 +133,7 @@ namespace CodexAccountSwitcher.Windows
             EnsureAvailable();
             CommandResult result = await RunAsync(new[] { "list", useApi ? "--api" : "--skip-api" }, 45000);
             IList<AccountInfo> accounts = AccountTableParser.Parse(result.Output, useApi);
+            AccountUsageRegistry.Normalize(accounts);
             // codex-auth may print a valid table and then return a non-zero exit code when an
             // optional post-refresh step is unavailable. The verified table remains usable.
             if (accounts.Count > 0) return accounts;

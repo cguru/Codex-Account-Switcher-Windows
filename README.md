@@ -20,7 +20,8 @@ sessions, settings, skills, or memories.
 - Runs in the Windows system tray and optionally starts with Windows.
 - Supports Windows per-monitor DPI scaling and has been visually tested at 200% scaling.
 - Automatically uses Korean on Korean Windows (`ko-*`) and English everywhere else.
-- Uses local-only usage data by default. Live API usage lookup is explicit opt-in.
+- Refreshes usage from the live API by default; local-only lookup remains available as an opt-out.
+- Uses the rate-limit window duration from the account registry, so a weekly-only limit is not duplicated into the 5-hour column.
 - Bundles a private portable Node.js runtime so live usage works without installing Node.js system-wide.
 
 ## Install
@@ -62,8 +63,9 @@ The switch flow is deliberately conservative:
 6. Relaunch Codex.
 
 The app does not directly modify session, configuration, skill, or memory files. Authentication
-tokens remain local. Enabling **Live usage lookup** allows the third-party `codex-auth` runtime to
-call the OpenAI usage endpoint with the active token; the option is off by default.
+tokens remain local. **Live usage lookup** is enabled by default and allows the third-party
+`codex-auth` runtime to call the OpenAI usage endpoint with the active token. You can disable it in
+settings to use local-only cached data instead.
 
 ## Build from source
 
@@ -100,7 +102,7 @@ the Start menu. Uninstalling the switcher does not delete Codex accounts or sess
 
 ## Third-party software
 
-Release installers bundle `@loongphy/codex-auth` 0.2.10 and the official portable Node.js 24.18.1
+Release installers bundle `@loongphy/codex-auth` 0.3.0-alpha.10 and the official portable Node.js 24.18.1
 runtime. See
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
 [vendor/LICENSE-codex-auth.txt](vendor/LICENSE-codex-auth.txt).
@@ -119,7 +121,8 @@ Codex의 로컬 세션과 설정은 그대로 유지하면서 로그인 계정�
 - 현재 갱신된 인증 정보를 먼저 보존한 다음 대상 계정으로 전환합니다.
 - 전환 결과를 이메일로 재확인하고 실패하면 이전 계정으로 자동 복구를 시도합니다.
 - Windows 표시 언어가 한국어면 전체 UI와 알림, 설치 화면이 한국어로 표시됩니다.
-- 기본값은 로컬 사용량 정보만 읽으며 실시간 API 사용량 조회는 선택 사항입니다.
+- 기본값은 실시간 API 사용량 조회이며 설정에서 끄면 로컬 정보만 읽습니다.
+- 계정 레지스트리의 제한 시간 길이를 확인하므로 주간 제한만 있는 계정에서 같은 값을 5시간 칸에 중복 표시하지 않습니다.
 - 휴대용 Node.js 런타임이 설치 파일에 포함되어 별도 Node.js 설치 없이 실시간 조회가 동작합니다.
 
 설치는 [최신 릴리스](https://github.com/cguru/Codex-Account-Switcher-Windows/releases/latest)에서

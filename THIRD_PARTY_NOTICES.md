@@ -1,7 +1,7 @@
 # Third-party notices
 
 The release installer bundles the Windows x64 executable from
-[`@loongphy/codex-auth` 0.2.10](https://github.com/Loongphy/codex-auth).
+[`@loongphy/codex-auth` 0.3.0-alpha.10](https://github.com/Loongphy/codex-auth).
 
 `codex-auth` is distributed under the MIT License. Its original license text is kept at
 [`vendor/LICENSE-codex-auth.txt`](vendor/LICENSE-codex-auth.txt) and is installed next to
