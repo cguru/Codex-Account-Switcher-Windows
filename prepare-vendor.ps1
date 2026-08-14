@@ -30,8 +30,15 @@ else {
     $packageRoot = Join-Path $cacheRoot "node_modules\@loongphy\codex-auth"
 }
 
-$sourceExe = Join-Path $packageRoot "node_modules\@loongphy\codex-auth-win32-x64\bin\codex-auth.exe"
+$sourceExeCandidates = @(
+    (Join-Path $packageRoot "node_modules\@loongphy\codex-auth-win32-x64\bin\codex-auth.exe"),
+    (Join-Path (Split-Path -Parent $packageRoot) "codex-auth-win32-x64\bin\codex-auth.exe")
+)
+$sourceExe = $sourceExeCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 $sourceLicense = Join-Path $packageRoot "LICENSE"
+if (-not $sourceExe) {
+    throw "Missing codex-auth payload. Checked: $($sourceExeCandidates -join ', ')"
+}
 foreach ($required in @($sourceExe, $sourceLicense)) {
     if (-not (Test-Path -LiteralPath $required)) { throw "Missing codex-auth payload: $required" }
 }
