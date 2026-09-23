@@ -423,26 +423,17 @@ namespace CodexAccountSwitcher.Windows
                 if (answer != MessageBoxResult.Yes) return;
             }
 
-            string cliPids = _auth.IsDemoMode ? null : CodexAppManager.FindExternalCliProcessDescription();
-            if (!string.IsNullOrEmpty(cliPids))
-            {
-                MessageBox.Show(this,
-                    L.F("별도로 실행 중인 Codex 명령줄 작업이 있습니다 (PID {0}). 먼저 종료한 뒤 다시 시도해 주세요.",
-                        "A separate Codex command-line task is running (PID {0}). Close it and try again.", cliPids),
-                    L.T("전환을 잠시 멈췄습니다", "Switch paused"), MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
             AccountInfo previous = _accounts.FirstOrDefault(a => a.IsActive);
             SetBusy(true, L.T("Codex를 종료하고 계정을 전환하는 중…",
                 "Closing Codex and switching accounts…"));
-            bool codexStopped = false;
+            bool codexRestartRequired = false;
             try
             {
                 if (!_auth.IsDemoMode)
                 {
+                    // Even a partially successful stop must be followed by a relaunch.
+                    codexRestartRequired = true;
                     await Task.Run(() => CodexAppManager.StopCodexDesktop());
-                    codexStopped = true;
                 }
 
                 CommandResult switched = await _auth.SwitchAsync(target.SwitchKey);
@@ -479,7 +470,7 @@ namespace CodexAccountSwitcher.Windows
             }
             catch (Exception ex)
             {
-                if (codexStopped)
+                if (codexRestartRequired)
                 {
                     try { CodexAppManager.LaunchCodexDesktop(); }
                     catch { }

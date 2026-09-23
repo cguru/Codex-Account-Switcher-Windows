@@ -298,44 +298,47 @@ namespace CodexAccountSwitcher.Windows
     {
         private const string CodexAppId = @"OpenAI.Codex_2p2nqsd0c76g0!App";
 
-        public static string FindExternalCliProcessDescription()
-        {
-            var ids = new List<int>();
-            foreach (Process process in Process.GetProcessesByName("codex"))
-            {
-                string path = TryGetPath(process);
-                if (string.IsNullOrEmpty(path) || path.IndexOf(@"\OpenAI.Codex_", StringComparison.OrdinalIgnoreCase) < 0)
-                    ids.Add(process.Id);
-            }
-            return ids.Count == 0 ? null : string.Join(", ", ids.Select(x => x.ToString()).ToArray());
-        }
-
         public static void StopCodexDesktop()
         {
-            List<Process> processes = FindPackagedProcesses();
-            foreach (Process process in processes.Where(p => p.ProcessName.Equals("ChatGPT", StringComparison.OrdinalIgnoreCase)))
+            List<Process> processes = FindCodexProcesses();
+            foreach (Process process in processes)
             {
                 try { if (process.MainWindowHandle != IntPtr.Zero) process.CloseMainWindow(); }
                 catch { }
             }
 
-            DateTime deadline = DateTime.UtcNow.AddSeconds(10);
+            // Give the desktop window a short opportunity to persist its state and close
+            // normally. Headless helpers and CLI processes are force-closed afterwards.
+            DateTime deadline = DateTime.UtcNow.AddSeconds(5);
             while (DateTime.UtcNow < deadline)
             {
                 Thread.Sleep(250);
-                processes = FindPackagedProcesses();
+                processes = FindCodexProcesses();
                 if (processes.Count == 0) return;
             }
 
-            foreach (Process process in processes)
+            deadline = DateTime.UtcNow.AddSeconds(5);
+            while (DateTime.UtcNow < deadline)
             {
-                try { process.Kill(); }
-                catch { }
+                processes = FindCodexProcesses();
+                if (processes.Count == 0) return;
+
+                // The desktop parent can briefly respawn a helper while it is
+                // shutting down, so rescan and terminate until the set is empty.
+                foreach (Process process in processes)
+                {
+                    try { process.Kill(); }
+                    catch { }
+                }
+                Thread.Sleep(250);
             }
-            Thread.Sleep(800);
-            if (FindPackagedProcesses().Count > 0)
-                throw new InvalidOperationException(L.T("Codex Windows 앱 프로세스를 모두 종료하지 못했습니다.",
-                    "Could not stop all Codex Windows app processes."));
+
+            processes = FindCodexProcesses();
+            if (processes.Count == 0) return;
+            string remaining = string.Join(", ", processes.Select(DescribeProcess).ToArray());
+            throw new InvalidOperationException(L.F(
+                "Codex 프로세스를 모두 종료하지 못했습니다: {0}",
+                "Could not stop all Codex processes: {0}", remaining));
         }
 
         public static void LaunchCodexDesktop()
@@ -361,19 +364,42 @@ namespace CodexAccountSwitcher.Windows
             return null;
         }
 
-        private static List<Process> FindPackagedProcesses()
+        internal static bool IsCodexHelperProcessName(string name)
+        {
+            return string.Equals(name, "codex", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(name, "codex-code-mode-host", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static List<Process> FindCodexProcesses()
         {
             var result = new List<Process>();
+            var seen = new HashSet<int>();
             foreach (string name in new[] { "ChatGPT", "codex", "codex-code-mode-host" })
             {
                 foreach (Process process in Process.GetProcessesByName(name))
                 {
-                    string path = TryGetPath(process);
-                    if (!string.IsNullOrEmpty(path) && path.IndexOf(@"\OpenAI.Codex_", StringComparison.OrdinalIgnoreCase) >= 0)
-                        result.Add(process);
+                    try
+                    {
+                        bool shouldStop = IsCodexHelperProcessName(name);
+                        if (!shouldStop)
+                        {
+                            string path = TryGetPath(process);
+                            shouldStop = !string.IsNullOrEmpty(path) &&
+                                path.IndexOf(@"\OpenAI.Codex_", StringComparison.OrdinalIgnoreCase) >= 0;
+                        }
+                        if (shouldStop && seen.Add(process.Id))
+                            result.Add(process);
+                    }
+                    catch { }
                 }
             }
             return result;
+        }
+
+        private static string DescribeProcess(Process process)
+        {
+            try { return process.ProcessName + " (PID " + process.Id + ")"; }
+            catch { return "PID ?"; }
         }
 
         private static string TryGetPath(Process process)

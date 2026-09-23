@@ -79,6 +79,11 @@ namespace CodexAccountSwitcher.Windows
                     "weekly-only does not duplicate into 5-hour");
                 Require(parsed[0].WeeklyUsedPercent == 100 && parsed[0].WeeklyUsage.StartsWith("100%"),
                     "weekly-only remaining percent");
+                Require(CodexAppManager.IsCodexHelperProcessName("codex"), "codex helper detection");
+                Require(CodexAppManager.IsCodexHelperProcessName("CODEX-CODE-MODE-HOST"),
+                    "code mode helper detection");
+                Require(!CodexAppManager.IsCodexHelperProcessName("CodexAccountSwitcher"),
+                    "switcher exclusion");
                 Console.WriteLine("SELF-TEST PASSED");
                 return 0;
             }

@@ -13,10 +13,9 @@ sessions, settings, skills, or memories.
 ## Features
 
 - Switches the login account while preserving the same `%USERPROFILE%\.codex` session and settings directory.
-- Closes the Codex desktop app before switching and relaunches it afterward.
 - Uses [`codex-auth`](https://github.com/Loongphy/codex-auth) to save the current refreshed credentials before restoring the target account.
 - Verifies the active email after every switch and attempts an automatic rollback if verification fails.
-- Refuses to switch while a separate Codex CLI process is running.
+- Automatically closes the Codex desktop app, background helpers, and running Codex CLI processes before switching.
 - Runs in the Windows system tray and optionally starts with Windows.
 - Supports Windows per-monitor DPI scaling and has been visually tested at 200% scaling.
 - Automatically uses Korean on Korean Windows (`ko-*`) and English everywhere else.
@@ -55,8 +54,8 @@ on every Windows machine where you use the switcher.
 
 The switch flow is deliberately conservative:
 
-1. Check that no external Codex CLI process is running.
-2. Close the packaged Codex desktop app.
+1. Close the packaged Codex desktop app gracefully.
+2. Stop remaining Codex background helpers and CLI processes automatically.
 3. Ask `codex-auth` to sync the current credential state and switch by exact account email.
 4. Read the local account list again and verify the target email is active.
 5. If verification fails, switch back to the previous email when possible.
@@ -119,6 +118,7 @@ Codex의 로컬 세션과 설정은 그대로 유지하면서 로그인 계정�
 
 - 계정 전환 전에 Codex를 종료하고 완료 후 다시 실행합니다.
 - 현재 갱신된 인증 정보를 먼저 보존한 다음 대상 계정으로 전환합니다.
+- 전환할 때 남아 있는 Codex 창, 백그라운드 보조 프로세스와 CLI 작업을 자동으로 종료하고 완료 후 앱을 다시 실행합니다.
 - 전환 결과를 이메일로 재확인하고 실패하면 이전 계정으로 자동 복구를 시도합니다.
 - Windows 표시 언어가 한국어면 전체 UI와 알림, 설치 화면이 한국어로 표시됩니다.
 - 기본값은 실시간 API 사용량 조회이며 설정에서 끄면 로컬 정보만 읽습니다.
