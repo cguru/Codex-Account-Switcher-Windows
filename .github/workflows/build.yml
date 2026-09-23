@@ -51,8 +51,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if (gh release view $env:GITHUB_REF_NAME 2>$null) {
-            gh release upload $env:GITHUB_REF_NAME .\dist\CodexAccountSwitcher-Setup.exe --clobber
+          if (gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY 2>$null) {
+            gh release upload $env:GITHUB_REF_NAME .\dist\CodexAccountSwitcher-Setup.exe --clobber --repo $env:GITHUB_REPOSITORY
           } else {
-            gh release create $env:GITHUB_REF_NAME .\dist\CodexAccountSwitcher-Setup.exe --generate-notes --title $env:GITHUB_REF_NAME
+            gh release create $env:GITHUB_REF_NAME .\dist\CodexAccountSwitcher-Setup.exe --generate-notes --title $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY
           }
